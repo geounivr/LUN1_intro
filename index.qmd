@@ -1,0 +1,1602 @@
+---
+title: "<br><br>Introduction à la programmation, R et les Notebooks"
+subtitle: "GEO UNIV'R Tunisie 2024"
+author: "Ronan Ysebaert, Nicolas Lambert, Elina Marvaux"
+date: "2024-05-13"
+title-slide-attributes:
+  data-background-color: "#75AADB85"
+  data-background-image: fig/logo.png
+  data-background-size: 200px
+  data-background-opacity: "0.9"
+  data-background-position: top center
+format: 
+  revealjs:
+    logo: fig/logo.png
+    footer: "Geo Univ'R 2024 - Tunisie"
+    margin: 0
+    code-line-numbers: true
+    embed-resources: true
+    smaller: true
+    scrollable: false
+    theme: [simple, style.scss]
+execute:
+  echo: true
+editor_options: 
+  chunk_output_type: console
+---
+
+
+# Pourquoi programmer ? 
+
+## Polyvalence
+
+<br>
+
+![](fig/chain_1.png)
+
+<center>
+**Avant** : Logiciels payants, ruptures logicielles dans les chaines de traitements, partage des méthodes non optimisé, univers “no-code”.
+</center>
+
+## Polyvalence
+
+<br>
+
+![](fig/chain_2.png)
+
+<center>
+**Maintenant** : Tout dans **un seul environnement** de programmation
+</center>
+
+
+
+## Reproductibilité des méthodes
+
+:::::::::::::: {.columns}
+::: {.column width="40%"}
+
+<br><br>
+
+- **Automatiser ses traitements** :  moins de clic-bouton / erreurs de manipulation, gain de temps
+- **Transparence** & **reproductibilité** : pour soi-même, ses collègues, la communauté
+
+:::
+
+::: {.column width="60%"}
+![](fig/ex_1.png)
+:::
+::::::::::::::
+
+
+## Reproductibilité des méthodes
+
+:::::::::::::: {.columns}
+::: {.column width="40%"}
+
+<br><br>
+
+- **Automatiser ses traitements** :  moins de clic-bouton / erreurs de manipulation, gain de temps
+- **Transparence** & **reproductibilité** : pour soi-même, ses collègues, la communauté
+-  **Maturité de la communauté** : IDE fonctionnels, aides, tutoriels, jeux de données d'exemple...
+
+:::
+
+::: {.column width="50%"}
+![](fig/ex_2.png)
+:::
+::::::::::::::
+
+## Extensibilité / transposabilité des analyses
+
+:::::::::::::: {.columns}
+::: {.column width="50%"}
+
+```{r}
+#| eval: false
+
+library(sf)
+library(mapsf)
+
+# Sélection du gouvernorat d'intérêt
+del <- "Sousse"
+
+# Import géométries et données
+deleg <- st_read("data/tun_admin.gpkg", layer = "delegation", 
+                 quiet = TRUE)
+deleg_df <- read.csv("data/don_del.csv", sep = ";", dec = ",")
+
+# Jointure attributaire
+deleg <- merge(deleg[,"del_code"], deleg_df, by = "del_code",
+               all.x = TRUE)
+
+# Paramètres (discrétisation, palette de couleur)
+sel <- deleg[deleg$gou_nom == del,]
+bks <- mf_get_breaks(x = sel$idr_2011, nbreaks = 5, 
+                     breaks = "quantile")
+pal <- hcl.colors(n = 5, palette = "Dark Mint", rev = TRUE)
+
+# Cartographie
+mf_map(sel, var = "idr_2011", type = "choro", breaks = bks,
+       leg_pos = NA)
+
+# Créer un histogramme dans la carte
+mf_inset_on(fig = c(0.75, .95, 0.84, .99))
+hist(sel$idr_2011, breaks = bks, col = pal, axes = FALSE, 
+     labels = "", xlab = "", ylab = "", main = "")
+axis(side = 1, at = round(bks, 2), las = 2, tick = FALSE, 
+     line = -.9, cex.axis = .7)
+mf_inset_off()
+
+mf_title(paste0("Indice de Développement Régional à ",
+         del, " (gouvernorat), 2011"))
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| fig-width: 7
+#| fig-height: 7.5
+
+library(sf)
+library(mapsf)
+
+# Sélection du gouvernorat d'intérêt
+del <- "Sousse"
+
+# Import géométries et données
+deleg <- st_read("data/tun_admin.gpkg", layer = "delegation",
+                 quiet = TRUE)
+deleg_df <- read.csv("data/don_del.csv", sep = ";", dec = ",")
+
+# Jointure attributaire
+deleg <- merge(deleg[,"del_code"], deleg_df, by = "del_code", 
+               all.x = TRUE)
+
+# Paramètres (discrétisation, palette de couleur)
+sel <- deleg[deleg$gou_nom == del,]
+bks <- mf_get_breaks(x = sel$idr_2011, nbreaks = 5, breaks = "quantile")
+pal <- hcl.colors(n = 5, palette = "Dark Mint", rev = TRUE)
+
+# Cartographie
+mf_map(sel, var = "idr_2011", type = "choro", breaks = bks,
+       leg_pos = NA, expandBB = rep(-.04, 4))
+
+# Créer un histogramme dans la carte
+mf_inset_on(fig = c(0.75, .95, 0.84, .99))
+hist(sel$idr_2011, breaks = bks, col = pal, axes = FALSE, 
+     labels = "", xlab = "", ylab = "", main = "")
+axis(side = 1, at = round(bks, 2), las = 2, tick = FALSE, 
+     line = -.9,  cex.axis = .7)
+mf_inset_off()
+
+mf_title(paste0("Indice de Développement Régional à ",
+         del, " (gouvernorat), 2011"), cex = 1.2)
+```
+:::
+::::::::::::::
+
+## Extensibilité / transposabilité des analyses
+
+:::::::::::::: {.columns}
+::: {.column width="50%"}
+
+```{r}
+#| eval: false
+
+library(sf)
+library(mapsf)
+
+# Sélection du gouvernorat d'intérêt
+del <- "Sfax"
+
+# Import géométries et données
+deleg <- st_read("data/tun_admin.gpkg", layer = "delegation", 
+                 quiet = TRUE)
+deleg_df <- read.csv("data/don_del.csv", sep = ";", dec = ",")
+
+# Jointure attributaire
+deleg <- merge(deleg[,"del_code"], deleg_df, by = "del_code",
+               all.x = TRUE)
+
+# Paramètres (discrétisation, palette de couleur)
+sel <- deleg[deleg$gou_nom == del,]
+bks <- mf_get_breaks(x = sel$idr_2011, nbreaks = 5, 
+                     breaks = "quantile")
+pal <- hcl.colors(n = 5, palette = "Dark Mint", rev = TRUE)
+
+# Cartographie
+mf_map(sel, var = "idr_2011", type = "choro", breaks = bks,
+       leg_pos = NA)
+
+# Créer un histogramme dans la carte
+mf_inset_on(fig = c(0.75, .95, 0.84, .99))
+hist(sel$idr_2011, breaks = bks, col = pal, axes = FALSE, 
+     labels = "", xlab = "", ylab = "", main = "")
+axis(side = 1, at = round(bks, 2), las = 2, tick = FALSE, 
+     line = -.9, cex.axis = .7)
+mf_inset_off()
+
+mf_title(paste0("Indice de Développement Régional à ",
+         del, " (gouvernorat), 2011"))
+```
+::: 
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| fig-width: 7
+#| fig-height: 7.5
+
+library(sf)
+library(mapsf)
+
+# Sélection du gouvernorat d'intérêt
+del <- "Sfax"
+
+# Import géométries et données
+deleg <- st_read("data/tun_admin.gpkg", layer = "delegation",
+                 quiet = TRUE)
+deleg_df <- read.csv("data/don_del.csv", sep = ";", dec = ",")
+
+# Jointure attributaire
+deleg <- merge(deleg[,"del_code"], deleg_df, by = "del_code", 
+               all.x = TRUE)
+
+# Paramètres (discrétisation, palette de couleur)
+sel <- deleg[deleg$gou_nom == del,]
+bks <- mf_get_breaks(x = sel$idr_2011, nbreaks = 5, breaks = "quantile")
+pal <- hcl.colors(n = 5, palette = "Dark Mint", rev = TRUE)
+
+# Cartographie
+mf_map(sel, var = "idr_2011", type = "choro", breaks = bks,
+       leg_pos = NA, expandBB = rep(-.04, 4))
+
+# Créer un histogramme dans la carte
+mf_inset_on(fig = c(0.75, .95, 0.84, .99))
+hist(sel$idr_2011, breaks = bks, col = pal, axes = FALSE, 
+     labels = "", xlab = "", ylab = "", main = "")
+axis(side = 1, at = round(bks, 2), las = 2, tick = FALSE, 
+     line = -.9,  cex.axis = .7)
+mf_inset_off()
+
+mf_title(paste0("Indice de Développement Régional à ",
+         del, " (gouvernorat), 2011"), cex = 1.2)
+```
+::: 
+::::::::::::::
+
+## Progresser ! 
+
+:::::::::::::: {.columns}
+::: {.column width="60%"}
+
+<br><br><br>
+
+Plein de petits succès gratifiants à vivre... 
+
+1. **Copier/coller** du code, ça marche !
+2. **Comprendre** et **gérer** les messages d'erreur / débugger son code
+3. **Optimiser** son code / tester de nouveaux packages
+4. **Créer / adapter** de nouvelles méthodes (fonctions) 
+5. **Mettre à disposition** des ressources / soumettre des bugs
+5. **Contribuer** à la communauté (packages)
+
+::: 
+
+::: {.column width="40%"}
+
+![](fig/progress.svg)
+
+::: 
+
+::::::::::::::
+
+# Pourquoi R ?
+
+
+## Liberté et maturité
+
+<br>
+
+- **R est un logiciel/langage libre (open source)** 
+- **R est multi-plateforme ** : Windows, MacOS, Linux, etc. 
+
+<br>
+
+### 30 années de recherche & développement
+
+::: {.medium}
+
+:::::::::::::: {.columns}
+::: {.column width="48%"}
+- **1970's** - Mise en oeuvre par John M. Chambers et une équipe de chercheurs du langage **S** dédié à la "programmation avec des données"
+- **1990's** - **R. Gentleman** et **R. Ihaka [mettent en oeuvre R](https://www.stat.auckland.ac.nz/~ihaka/downloads/R-paper.pdf)**, un langage inspiré par le S, qui a progressivement perdu en influence 
+- 1993 - **Première version binaire** de R publiée sur Statlib
+- 1999 - Création du site web de R (*r-project.org*) . Première réunion physique de la *R core team* 
+::: 
+
+::: {.column width="4%"}
+:::
+
+::: {.column width="48%"}
+- **2000** - **R 1.0.0** est publié. John Chambers (créateur du langage S), rejoint la *R Core team* 
+- 2004: Première conférence *UseR!* (Vienne)
+- 2009 - Première édition du *R Journal*
+- **2011** - Première version de **RStudio**, développé par Joseph Allaire. 
+- **2016** - Version 1.0 de RStudio, qui intègre la possibilité d'écrire des notebooks. 
+- **2024** - **R 4.4.0** 
+:::
+:::::::::::::: 
+
+:::
+
+## R-base et packages
+
+:::::::::::::: {.columns}
+::: {.column width="55%"}
+
+<br><br><br>
+
+- Plus de **3000 fonctions** de traitement de données et d'analyse statistique (**r-base**) 
+- À ce socle commun s'**ajoute de nombreux packages**, mis à disposition sur le [**CRAN**](https://cran.r-project.org/web/packages/available_packages_by_name.html) (***Comprehensive R Archive Network***)  
+- +/- **40 familles de packages** sont identifiés par les [***CRAN Task Views***](https://cran.r-project.org/web/views/): statistique (*Bayesian*, *MachineLearning*, *TimeSeries*, ...), manipulation de données (*MissingData*),  disciplinaire (*Agriculture*, *Finance*, *SportsAnalytics*, *Hydrology*, ***Spatial***)
+::: 
+
+::: {.column width="45%"}
+<center>
+![](fig/graph.png)
+<small>Évolution du nombre de packages accessibles sur le CRAN</small></center>
+:::
+::::::::::::::
+
+## Un seul environnement pour toutes les étapes de traitement !
+
+![](fig/Chaine_traitement_R_white_FR.png)
+
+## Une large communauté et des ressources
+
+:::::::::::::: {.columns}
+::: {.column width="50%"}
+
+<br>
+
+- Toujours plus d'utilisateur.ice.s dans le **monde académique**, **les organismes publics**, les **ONG** ou chez les analystes (*data journalism*, etc.)  
+
+- **Documentation abondante et structurée** :
+    * Harmonisation de la documentation des packages et fonctions disponibles, associé à des exemples reproductibles 
+    * Des [sites Web](https://riatelab.github.io/mapsf/index.html) associés aux packages, "**[cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/sf.pdf)"**
+    * Des initiatives comme [Rzine](https://rzine.fr/) pour diffuser la pratique de R dans les SHS  
+    * Des forums, comme [Stack Overflow](https://stackoverflow.com/) pour répondre aux questions / réponses
+
+::: 
+
+::: {.column width="50%"}
+<center>
+![](fig/rzine.png)
+<small>**[Rzine](https://rzine.fr/)**, encourager la production et favoriser la diffusion de documentation sur la pratique de R en Sciences Humaines et Sociales</small></center>
+::: 
+::::::::::::::
+
+## Un IDE qui facilite la pratique de R : RStudio
+
+<br>
+
+**[Posit](https://posit.co/)** développe et publie des logiciels et des services basés sur le langage R.
+**C'est l'acteur privé le plus important de la communauté R** 
+
+Posit a développé plusieurs packages de référence :
+
+- [**shiny**](https://shiny.rstudio.com/) (*application web*)
+- [**ggplot2**](https://ggplot2.tidyverse.org/) (*représentation graphique*)
+- [**dplyr**](https://dplyr.tidyverse.org/) & [**tidyr**](https://tidyr.tidyverse.org/) (*manipulation de tableau*)
+- [**stringr**](https://stringr.tidyverse.org/articles/from-base.html) (*manipulation de chaîne de caractères*)
+- ...
+
+Mais aussi... Un Environnement de Développement Intégré (**IDE**) : [**RStudio**](https://posit.co/download/rstudio-desktop/)
+
+## Interface rudimentaire de R
+
+:::::::::::::: {.columns}
+::: {.column width="50%"}
+<p align="center"><img src="fig/R_wind.PNG"  width="450"/></p>
+<p class="legend" align="center">*Interface de R sur Windows*</p>
+:::
+
+::: {.column width="50%"}
+<p align="center"><img src="fig/R_linux.PNG"  width="450"/></p>
+<p class="legend" align="center">*Pas d'interface sur Linux (terminal)*</p><br>
+:::
+:::::::::::::: 
+
+## IDE Rstudio
+
+<p align="center"><img src="fig/Rstudio_FR.png"   width="900" /></p>
+
+## IDE Rstudio
+
+:::::::::::::: {.columns}
+
+::: {.column width="45%"}
+
+### Points forts de RStudio
+
+- **Création de projet** : chemins relatifs, très importants pour le partage de vos scripts !
+- **Fonctionnalités clic-bouton** : exporter un plot, installer un package, visualiser une table, etc.
+- **Auto-complétion** (CNTRL + Espace) : variables créées dans le code, arguments des fonctions, chemins, etc.
+- **Raccourcis clavier** 
+- **Correcteur d'orthographe**
+- **Création de notebooks**
+<br>
+
+Parce que c'est **simple**, **complet** et en constante **évolution**...
+   
+**Utilisez l'environnement RStudio!**
+
+::: 
+
+
+::: {.column width="55%"}
+
+<p align="center"><img src="fig/ex_1.png"  width="700" /></p>
+
+::: 
+
+::::::::::::::
+
+## Quelques conseils pour l'apprentissage de R
+
+<br><br>
+
+- **Y consacrer du temps** : l'apprentissage d'un langage de programmation reste coûteux (surtout quand c'est le premier)
+- **Lire la documentation** : nature des objets R attendus par les fonction, possibilités offertes par une fonction (arguments)
+- **Jouer les exemples / tutoriels** (copier/coller code)
+- **Rester serein** face à un *warning* ou une *error*, généralement liés à des erreurs de syntaxe (virgule, casse, “orthographe”)
+- **Consulter les forums** (copier/coller messages d'erreur). 
+- Préférer les recherches en anglais = importance vocabulaire.
+
+
+## Bonnes pratiques pour écrire et documenter son code
+
+<br>
+
+Un code **propre** et **fonctionnel** peut être lu et amélioré par un autre auteur (ou par soi-même) longtemps après
+
+:::::::::::::: {.columns}
+
+<br>
+
+::: {.column width="50%"}
+
+### Fonctionnel
+
+- Pas d'erreurs 
+- Pas redondant : pour des opérations répétitives, créer des fonctions ou des boucles
+- À jour (utiliser la dernière version des packages, si ce n'est pas le cas, l'expliquer)
+
+:::
+
+::: {.column width="50%"}
+
+### Bien écrit 
+
+- [Connaître les bonnes pratiques](https://www.r-bloggers.com/2018/09/r-code-best-practices/)
+- Facile à lire, par soi-même et par les autres (indentation, noms d'objets)
+- Organisé de façon logique (simplicité)
+- Explicite et montre les intentions du développeur (commentaires)
+
+:::
+
+:::::::::::::: 
+
+## Bonnes pratiques pour écrire et documenter son code
+
+<center>Voici un graphique interactif réalisé avec `plotly`...
+
+```{r}
+#| echo: false
+#| fig-height: 6
+#| fig-width: 10.5
+
+# Package utilisé
+library(plotly)
+
+# Import des données
+df <- read.csv("data/don_del.csv",sep=";", dec=",")
+
+# Création indicateur
+df$part_ordi_2014 <- df$porta_2014 / df$popto_2014 * 100
+
+# Paramétage taille des cercles
+slope <- 0.02
+df$size <- sqrt(df$popco_2014 * slope)
+
+# Création plot interactif
+fig <- plot_ly(df, # Jeu de données
+               x = ~part_ordi_2014, y = ~idr_2011, size = ~size, color = ~reg_nom, # Variables
+               type = 'scatter', 
+               mode = 'markers', 
+               colors = 'Paired', 
+               sizes = c(min(df$size), max(df$size)),
+               marker = list(opacity = 0.5, 
+                             sizemode = 'diameter',
+                             line = list(width = 1, color = '#FFFFFF')),
+               text = ~paste('Délégation:', del_nom_fr, '/', del_nom_ar, '<br>IDR 2011 :', 
+                             idr_2011, '<br>Ordi:', part_ordi_2014, '<br>Pop.:', popto_2014))
+
+# Labels (titre, axes)
+fig <- fig %>% layout(title = 'IDR et équipement en ordinateurs dans les délégations tunisiennes',
+                      xaxis = list(title = "Part de la population équipée d'ordinateur 2014 (%)",
+                                   range = c(15, 35)),
+                      yaxis = list(title="Indice de développement régional 2011",
+                                  range = c(0, 1)))
+fig
+```
+
+</center>
+
+## Bonnes pratiques pour écrire et documenter son code
+
+<center>... Et son code associé. Un commentaire ?</center><br>
+
+```{r}
+#| eval: false
+#| fig-height: 6
+#| fig-width: 10.5
+library(plotly)
+monjeudedonnees<-read.csv("data/don_del.csv",sep=";", dec=",")
+monjeudedonnees$part_ordi_2014<-monjeudedonnees$porta_2014/monjeudedonnees$popto_2014*100
+slope<-0.02;monjeudedonnees$size <- sqrt(monjeudedonnees$popco_2014 * slope)
+fig<-plot_ly(monjeudedonnees, x = ~part_ordi_2014, y = ~idr_2011, type = 'scatter', mode = 'markers', size = ~size, color =~reg_nom, colors = 'Paired', sizes = c(min(monjeudedonnees$size), max(monjeudedonnees$size)),marker=list(opacity=0.5, sizemode='diameter',line=list(width=1, color='#FFFFFF')),
+        text=~paste('Délégation:', del_nom_fr, '/', del_nom_ar, '<br>IDR 2011 :', idr_2011, '<br>Ordi:',
+                      part_ordi_2014, '<br>Pop.:', popto_2014))
+fig<-fig %>% layout(title = 'IDR et équipement en ordinateurs dans les délégations tunisiennes',xaxis=list(title="Part de la population équipée d'ordinateur 2014 (%)",range=c(15, 35)),yaxis =list(title="Indice de développement régional 2011",range=c(0, 1)))
+fig
+```
+
+
+## Bonnes pratiques pour écrire et documenter son code
+
+<center>**Mise en forme du code** : indentation, une instruction par ligne, espaces entre les caractères</center>
+
+```{r}
+#| eval: false
+#| fig-height: 7
+#| fig-width: 10.5
+library(plotly)
+
+monjeudedonnees <- read.csv("data/don_del.csv", sep = ";", dec = ",")
+
+monjeudedonnees$part_ordi_2014 <- monjeudedonnees$porta_2014 / monjeudedonnees$popto_2014 * 100
+
+slope <- 0.02
+monjeudedonnees$size <- sqrt(monjeudedonnees$popco_2014 * slope)
+
+fig <- plot_ly(monjeudedonnees,
+               x = ~part_ordi_2014, y = ~idr_2011, size = ~size, color = ~reg_nom, 
+               type = 'scatter', 
+               mode = 'markers', 
+               colors = 'Paired', 
+               sizes = c(min(monjeudedonnees$size), max(monjeudedonnees$size)),
+               marker = list(opacity = 0.5, 
+                             sizemode = 'diameter',
+                             line = list(width = 1, color = '#FFFFFF')),
+               text = ~paste('Délégation:', del_nom_fr, '/', del_nom_ar, '<br>IDR 2011 :', 
+                             idr_2011, '<br>Ordi:', part_ordi_2014, '<br>Pop.:', popto_2014))
+
+fig <- fig %>% layout(title = 'IDR et équipement en ordinateurs dans les délégations tunisiennes',
+                      xaxis = list(title = "Part de la population équipée d'ordinateur 2014 (%)",
+                                   range = c(15, 35)),
+                      yaxis = list(title="Indice de développement régional 2011",
+                                  range = c(0, 1)))
+fig
+```
+
+
+## Bonnes pratiques pour écrire et documenter son code
+
+<center>**Commenter son code** : choix de conception, courts et explicites</center>
+
+```{r}
+#| eval: false
+#| fig-height: 7
+#| fig-width: 10.5
+
+# Package utilisé
+library(plotly)
+
+# Import des données
+monjeudedonnees <- read.csv("data/don_del.csv",sep=";", dec=",")
+
+# Création indicateur
+monjeudedonnees$part_ordi_2014 <- monjeudedonnees$porta_2014 / monjeudedonnees$popto_2014 * 100
+
+# Paramétrage taille des cercles
+slope <- 0.02
+monjeudedonnees$size <- sqrt(monjeudedonnees$popco_2014 * slope)
+
+# Création plot interactif
+fig <- plot_ly(monjeudedonnees, # Jeu de données
+               x = ~part_ordi_2014, y = ~idr_2011, size = ~size, color = ~reg_nom, # Variables
+               type = 'scatter', 
+               mode = 'markers', 
+               colors = 'Paired', 
+               sizes = c(min(monjeudedonnees$size), max(monjeudedonnees$size)),
+               marker = list(opacity = 0.5, 
+                             sizemode = 'diameter',
+                             line = list(width = 1, color = '#FFFFFF')),
+               text = ~paste('Délégation:', del_nom_fr, '/', del_nom_ar, '<br>IDR 2011 :', 
+                             idr_2011, '<br>Ordi:', part_ordi_2014, '<br>Pop.:', popto_2014))
+
+# Labels (titre, axes)
+fig <- fig %>% layout(title = 'IDR et équipement en ordinateurs dans les délégations tunisiennes',
+                      xaxis = list(title = "Part de la population équipée d'ordinateur 2014 (%)",
+                                   range = c(15, 35)),
+                      yaxis = list(title="Indice de développement régional 2011",
+                                  range = c(0, 1)))
+fig
+```
+
+## Bonnes pratiques pour écrire et documenter son code
+
+<center>**Optimiser les noms d'objet** : courts. Ne pas utiliser des mots "réservés" (plot, sum...)</center>
+
+```{r}
+#| eval: false
+#| fig-height: 7
+#| fig-width: 10.5
+
+# Package utilisé
+library(plotly)
+
+# Import des données
+del <- read.csv("data/don_del.csv", sep=";", dec=",")
+
+# Création indicateur
+del$part_ordi_2014 <- del$porta_2014 / del$popto_2014 * 100
+
+# Paramétrage taille des cercles
+slope <- 0.02
+del$size <- sqrt(del$popco_2014 * slope)
+
+# Création plot interactif
+fig <- plot_ly(del, # Jeu de données
+               x = ~part_ordi_2014, y = ~idr_2011, size = ~size, color = ~reg_nom, # Variables
+               type = 'scatter', 
+               mode = 'markers', 
+               colors = 'Paired', 
+               sizes = c(min(del$size), max(del$size)),
+               marker = list(opacity = 0.5, 
+                             sizemode = 'diameter',
+                             line = list(width = 1, color = '#FFFFFF')),
+               text = ~paste('Délégation:', del_nom_fr, '/', del_nom_ar, '<br>IDR 2011 :', 
+                             idr_2011, '<br>Ordi:', part_ordi_2014, '<br>Pop.:', popto_2014))
+
+# Labels (titre, axes)
+fig <- fig %>% layout(title = 'IDR et équipement en ordinateurs dans les délégations tunisiennes',
+                      xaxis = list(title = "Part de la population équipée d'ordinateur 2014 (%)",
+                                   range = c(15, 35)),
+                      yaxis = list(title="Indice de développement régional 2011",
+                                  range = c(0, 1)))
+fig
+```
+
+
+# Quarto et les notebooks
+
+## La réplication en question
+
+:::::::::::::: {.columns}
+
+::: {.column width="60%"}
+
+-   Où sont stockées les données ?
+-   Sur quoi reposent ces protocoles méthodologiques ?
+-   Comment les documenter ?
+-   Comment les restituer / mettre à jour / adapter ?
+
+<center>
+![](fig/too_much.png) <small> Qui pour reprendre ces programmes ? </small>
+</center>
+:::
+
+::: {.column width="40%"}
+<center><br><br>
+![](fig/dirty_code.png) <small> Qui pour comprendre ce code et ses intentions ? </small>
+</center>
+:::
+
+::::::::::::::
+
+## Recherche reproductible
+
+:::::::::::::: {.columns}
+
+::: {.column width="75%"}
+**Ouverture des protocoles** de recherche dans l'objectif de **confirmer** et rendre **répétable** des résultats de recherche :
+
+-   Mise à disposition des données et du code, exécutable
+-   Documentation de l'environnement logiciel nécessaire à son exécution
+-   Transparence dans la collecte de données, ses traitements, analyses et sorties graphiques
+-   Réutilisable par d'autres : documentation du code, de ce qu'il produit et dans quel but
+-   Ouvert aux retours, commentaires, suggestions, critiques, révisions
+:::
+
+::: {.column width="25%"}
+![](fig/claerbout.jpg) <small> Jon Claerbout (sismologue, Univ. Stanford). Il utilise avec son groupe pour la première fois le terme de "recherche reproductible" lors du congrès de la [*Society of Exploration Geophysics*](http://sep.stanford.edu/oldsep/matt/join/redoc/web/seg92.html) en 1992
+
+</small>
+:::
+::::::::::::::
+
+## Programmation lettrée et notebooks
+
+::: columns
+::: {.column width="75%"}
+**Paradigme de programmation** qui consiste à associer code source (pour les ordinateurs) et documentation (pour les humains) :
+
+-   Donner les informations suffisantes pour répliquer l'expérimentation, à la manière d'un essai
+-   Vérifier que les conclusions sont valides
+-   Améliorer les programmes / rendre les mauvaises décisions de conception plus évidentes
+-   Utile pour reprendre les programmes ultérieurement
+-   Transmettre et partager les connaissances sous des formes appropriées (tutoriels, manuels)
+
+> Un gain général en **reproductibilité** de la démarche et en **ouverture** des méthodes scientifiques.
+:::
+
+::: {.column width="25%"}
+![](fig/knuth.jpg) <small> Donald Knuth (mathématicien, Univ. Stanford). Pose les bases de la programmation lettrée dans un premier environnement de *literate programming* : le WEB qui combine du Pascal et du TeX, appliqué aux [nombres premiers (1984)](http://literateprogramming.com/knuthweb.pdf)
+
+</small>
+:::
+:::
+
+## Notebooks : Principes fondamentaux
+
+<center>
+Le **Notebook** est une solution opérationnelle et adaptée pour arriver à ces fins
+
+![](fig/notebook_1.png)
+<small>Source : Pecout, 2022</small></center>
+
+## Les Notebooks du moment en SHS
+
+<center><img src="fig/nouveau_notebook.png" width="800"/>
+
+<small>Source : Pecout, 2022</small></center>
+
+## Quarto : un des derniers nés des notebooks (2022)
+
+<br>
+
+::: columns
+::: {.column width="40%"}
+
+-   **Une solution de référence** dans l'univers RStudio : Maintenu par Posit, accessible dans RStudio, en développement actif (**prise en main ++**). 
+-   Permet d'exécuter **différents langages de programmation** : R, Python, Julia ou JavaScript (**interactivité ++**)
+-   **Mises en page avancées** (**templates ++**)
+-   **Fonctionnalités d'auto-complétion**
+:::
+
+::: {.column width="60%"}
+![](fig/quarto.png)
+:::
+:::
+
+## Des sorties multiples
+
+::: panel-tabset
+#### Sites Web
+
+::: columns
+::: {.column width="15%"}
+::: medium
+<br><br><br>
+
+<center>
+
+Restituer des analyses reproductibles / productions d'un projet
+
+<small>**Exemple** : <a href="https://riate-airbnb.gitpages.huma-num.fr/website/" target="_blank" role="button">Sortie (site Web)</a> // <a href="https://gitlab.huma-num.fr/riate-airbnb/website" target="_blank" role="button">Dépôt GitLab</a> </small>
+
+</center>
+:::
+:::
+
+::: {.column width="42.5%"}
+![](fig/airbnb_idf_1.png)
+:::
+
+::: {.column width="42.5%"}
+![](fig/airbnb_idf_2.png)
+:::
+
+:::
+
+#### Présentations
+
+::: columns
+::: {.column width="15%"}
+::: medium
+<br><br><br>
+
+<center>
+
+Générer des présentations interactives (iframe, animations, slides interactifs) avec le format **revealjs**
+
+<small>**Exemple** : <a href="https://ee-cist.github.io/CAR2_cartodyn/intro/docs/index.html" target="_blank" role="button">Sortie (Présentation)</a> // <a href="https://github.com/EE-CIST/CAR2_cartodyn" target="_blank" role="button">Dépôt GitHub</a> // <a href="https://github.com/EE-CIST/CAR2_cartodyn/blob/main/intro/index.qmd" target="_blank" role="button">Code</a> </small>
+
+</center>
+:::
+:::
+
+::: {.column width="42.5%"}
+<br><br><br><br>
+<center><img src="fig/output_prez1.png" width="400"/></center>
+:::
+::: {.column width="42.5%"}
+<center><img src="fig/output_prez2.png" width="400"/></center>
+<center><img src="fig/output_prez3.png" width="400"/></center>
+:::
+
+:::
+
+#### Rapports Interactifs
+
+::: columns
+::: {.column width="30%"}
+::: medium
+<br><br><br><center>
+
+Créer des rapports interactifs / supports de cours combinant (éventuellement) plusieurs langages de programmation.
+
+<small>**Exemple** : <a href="https://rysebaert.github.io/climbing_paris/" target="_blank" role="button">Sortie (Rapport interactif)</a> // <a href="https://github.com/rysebaert/climbing_paris" target="_blank" role="button">Dépôt GitHub</a> // <a href="https://github.com/rysebaert/climbing_paris/blob/main/index.qmd" target="_blank" role="button">Code (Quarto)</a> </small>
+
+</center>
+:::
+:::
+
+::: {.column width="70%"}
+<center><img src="fig/output_report.png" width="650"/></center>
+:::
+:::
+
+#### Manuels
+
+::: columns
+::: {.column width="30%"}
+::: medium
+<center>
+
+<br><br><br>
+
+Produire des manuels ou des sections pédagogiques collaboratifs au format Book
+
+<small> <a href="https://rcarto.github.io/geomatique_avec_r/" target="_blank" role="button">Sortie (Book)</a> // <a href="https://github.com/rcarto/geomatique_avec_r/" target="_blank" role="button">Dépôt GitHub</a></small>
+
+</center>
+:::
+:::
+
+::: {.column width="70%"}
+<center><img src="fig/output_book.png" width="550"/></center>
+:::
+:::
+
+#### Publications
+
+::: columns
+::: {.column width="40%"}
+::: medium
+<center>
+
+<br><br><br><br><br>
+
+Soumettre des publications suivant les prérequis (modèle LaTeX) de plusieurs revues de référence (Public Library of Science, Elsevier, JSS, etc.)
+
+<small> <a href="https://quarto.org/docs/journals/" target="_blank" role="button">Journal Articles (Quarto doc)</a> </small>
+
+</center>
+:::
+:::
+
+::: {.column width="60%"}
+<center><img src="fig/output_journal.png" width="350"/></center>
+:::
+:::
+:::
+
+# Initier et paramétrer son notebook dans RStudio
+
+## Squelette d'un notebook (Quarto)
+
+<br><br><br><br><center>![Source : Pecout, 2022](fig/notebook_2.png)</center>
+
+## Initier un document Quarto dans RStudio
+
+<center>RStudio propose **plusieurs modèles** pour initier aisément un notebook
+</center><br>
+
+::: columns
+::: {.column width="52%"}
+<br><br>
+![](fig/init_quarto1.png)
+:::
+
+::: {.column width="48%"}
+![](fig/init_quarto2.png)
+:::
+:::
+
+## Initier un document Quarto dans RStudio
+
+<center>Le document est généré en cliquant sur **render**</center>
+
+::: columns
+::: {.column width="50%"}
+
+![](fig/init_quarto3.png)
+:::
+
+::: {.column width="50%"}
+![](fig/init_quarto4.png)
+:::
+:::
+
+## Paramétrer son document grâce au YAML
+
+<br><br>
+
+::: columns
+::: {.column width="50%"}
+Le YAML permet de définir :
+
+-   Le format de sortie désiré : **HTML**
+:::
+
+::: {.column width="50%"}
+
+``` markdown
+---
+title: "My document"
+author: "Me"
+format: html
+---
+```
+
+:::
+:::
+
+## Paramétrer son document grâce au YAML
+
+<br><br>
+
+::: columns
+::: {.column width="50%"}
+Le YAML permet de définir :
+
+-   Le format de document désiré : HTML, **PDF** (distribution TeX requise)
+:::
+
+::: {.column width="50%"}
+<br>
+
+``` markdown
+---
+title: "My pdf document"
+author: "Me"
+format: pdf
+---
+```
+
+:::
+:::
+
+## Paramétrer son document grâce au YAML
+
+<br><br>
+
+::: columns
+::: {.column width="50%"}
+Le YAML permet de définir :
+
+-   Le format de document désiré : HTML, PDF (distribution TeX requise), **docx** (requiert Microsoft Office ou Libre/Open Office). 
+:::
+
+::: {.column width="50%"}
+
+<br><br>
+
+``` markdown
+---
+title: "My docx document"
+author: "Me"
+format: docx
+---
+```
+
+:::
+:::
+
+## Paramétrer son document grâce au YAML
+
+<br><br>
+
+::: columns
+::: {.column width="50%"}
+Le YAML permet de définir :
+
+-   Le format de document désiré : HTML, PDF (distribution TeX requise), **docx** (requiert Microsoft Office ou Libre/Open Office). 
+
+-   Le type de sortie souhaité : Document, **Présentation** (revealjs / beamer, PowerPoint)
+:::
+
+::: {.column width="50%"}
+
+<br><br><br><br>
+
+``` markdown
+---
+title: "My presentation"
+author: "Me"
+format: revealjs / beamer / pptx
+---
+```
+:::
+:::
+
+## Paramétrer son document grâce au YAML
+
+<center>Jouez sur ces paramètres pour créer des **documents uniques**</center>
+
+::: columns
+::: {.column width="50%"}
+::: medium
+
+-   choix d'un thème
+-   table des matières
+-   numérotation des parties du document
+-   gestion des couleurs
+-   style de la typo : police, couleurs, taille.  
+-   affichage des blocs de code
+-   dimensionnement des figures et tables
+-   gestion des urls
+-   ajout d'une bibliographie (BibTeX)
+-   affichage des notes de bas de page
+-   métadonnées associées au document
+-   associer une feuille de style css
+-   ...
+
+::: 
+:::
+
+::: {.column width="50%"}
+Exemple d'un modèle suivant les consignes éditoriales d'un projet européen...
+![](fig/output_doc_templated.png)
+:::
+:::
+
+---
+
+## Paramétrer son document grâce au YAML
+
+<center>Jouez sur ces paramètres pour créer des **documents uniques**</center>
+
+::: columns
+::: {.column width="50%"}
+::: medium
+
+-   choix d'un thème
+-   table des matières
+-   numérotation des parties du document
+-   gestion des couleurs
+-   style de la typo : police, couleurs, taille.  
+-   affichage des blocs de code
+-   dimensionnement des figures et tables
+-   gestion des urls
+-   ajout d'une bibliographie (BibTeX)
+-   affichage des notes de bas de page
+-   métadonnées associées au document
+-   associer une feuille de style css
+-   ...
+
+::: 
+
+Consulter la documentation [Quarto](https://quarto.org/docs/reference/formats/html.html)
+
+:::
+
+::: {.column width="50%"}
+::: medium
+... Et son YAML associé :
+``` markdown
+---
+title: "OpenStreetMap data and associated routing engine to produce novel data on rural areas in Europe"
+subtitle: "Review data and methods" 
+author:
+  - name: "Ronan Ysebaert, Marianne Guérois\n, Timothée Giraud, Nicolas Lambert, Matthieu Viry" 
+    affiliation: UAR RIATE (CNRS,  Université Paris Cité) 
+    affiliation-url: https://riate.cnrs.fr/
+date: "`r Sys.Date()`"
+description: "This review of the literature and data availability aims at providing an overview of possible solutions and limitations for creating accessibility indicators at European context. Whatever the solution retained, computing accessibility indicators requires relevant origins / destination pairs and routing engines for computing travel-time indicators. It is afterward possible to propose a large set of indicators derived from these measures. The first part of the document presents at European scale the policy context and the main initiatives developed so far for proposing harmonized indicators on accessibility. The second one reminds the main issues to be considered when calculating accessibility indicators (origin-destination pairs, routing engines, accessibility indicators computation). The third section makes an overview of existing databases and possibilities that could be considered in a European context for the selection of origins / destinations pairs. The fourth part highlights existing solutions for routing engines according to several transportation modes (road, cycle, transport-transit). Finally, the last section discusses on possibilities offered in term of indicator creation when the travel time matrix is calculated with a case-study on hospitals in France. This case-study could be extended in a cross-border context to test this framework within GRANULAR activities. At the end, this report aims at providing a general research framework on the activities that will be held on task 3.3.1 of the GRANULAR project: Crowd-sources data based on OpenStreetMap."
+title-block-banner: "#27445C"
+bibliography: bib.bib
+format:
+  html:
+    theme: sandstone
+    embed-resources: true
+    smooth-scroll: true
+    fontsize: 0.9em
+    code-tools: true
+    code-fold: true
+    toc: true
+    toc-title: Summary
+    toc-depth: 2
+    toc-location: left
+    css: "styles.css"
+    linkcolor: "#d52420"
+---
+```
+:::
+:::
+:::
+
+## Paramétrer son document grâce au YAML
+
+### Ajouter des références bibliographiques ? 
+
+<br>
+
+::: columns
+::: {.column width="50%"}
+
+<center>Un fichier .bib avec les entrées **bibliographiques** au format [BibTeX](https://fr.wikipedia.org/wiki/BibTeX)...
+
+![](fig/bib1.png)
+</center>
+::: 
+
+::: {.column width="50%"}
+<center>... **Appelé dans le YAML** et le corps du document avec `@x` (identifiant biblio)
+![](fig/bib2.png)
+</center>
+:::
+:::
+
+<center>Les références seront ajoutées en fin de document lors de la compilation</center>
+
+## Décrire simplement son cheminement en markdown
+
+<center>Permet de gérer les **blocs de textes** entre les blocs de code dans les notebooks Quarto</center> 
+<br>
+
+::: columns
+::: medium
+::: {.column width="40%"}
+
+- Un langage de balisage léger basé sur une syntaxe simple largement utilisé dans les blogs, forums et outils collaboratifs
+
+- Permet de gérer le formatage du texte, des en-têtes, importer simplement des images ou des URL, gérer des énumérations, des tables, etc.
+
+Se reporter au [Markdown Guide](https://www.markdownguide.org/basic-syntax/) ou à la [synthèse](https://quarto.org/docs/authoring/markdown-basics.html) proposée par Quarto pour en savoir plus
+:::
+
+::: {.column width="50%"}
+
++-----------------------------------+-------------------------------+
+| Markdown Syntax                   | Output                        |
++===================================+===============================+
+|      ### Titre de niveau 3        | ### Titre de niveau 3         |
++-----------------------------------+-------------------------------+
+|     *italics* and **bold**        | *italics* and **bold**        |
++-----------------------------------+-------------------------------+
+|     superscript^2^ / subscript~2~ | superscript^2^ / subscript~2~ |
++-----------------------------------+-------------------------------+
+|     ~~strikethrough~~             | ~~strikethrough~~             |
++-----------------------------------+-------------------------------+
+|     `verbatim code`               | `verbatim code`               |
++-----------------------------------+-------------------------------+
+|     * unordered list              | -   unordered list            |
+|         + sub-item 1              |                               |
+|         + sub-item 2              |     -   sub-item 1            |
+|             - sub-sub-item 1      |                               |
+|                                   |     -   sub-item 2            |
+|                                   |                               |
+|                                   |         -   sub-sub-item 1    |
++-----------------------------------+-------------------------------+
+|      [named hyperlinks](url)      | [named hyperlinks](url)       |
++-----------------------------------+-------------------------------+
+::: 
+:::
+:::
+
+## Décrire simplement son cheminement en markdown
+
+<center>Permet de gérer les **blocs de textes** entre les blocs de code dans les notebooks Quarto</center> 
+<br>
+
+::: medium
+
+::: {.column width="40%"}
+
+- Un langage de balisage léger basé sur une syntaxe simple largement utilisé dans les blogs, forums et outils collaboratifs 
+
+- Permet de gérer le formatage du texte, des en-têtes, importer simplement des images ou des URL, gérer des énumérations, des tables, etc.
+
+Se reporter au [Markdown Guide](https://www.markdownguide.org/basic-syntax/) ou à la [synthèse](https://quarto.org/docs/authoring/markdown-basics.html) proposée par Quarto pour en savoir plus
+:::
+
+::: {.column width="50%"}
+
++-----------------------------------+-------------------------------+
+| Markdown Syntax                   | Output                        |
++===================================+===============================+
+|     ![Named figure](url)          | ![Figure 1](fig/claerbout.jpg)|
++-----------------------------------+-------------------------------+
+
+::: 
+:::
+
+## Décrire simplement son cheminement en markdown
+
+<center>Testons ensemble : [https://hackmd.io/@Ronan/SJoG6ydbA/edit](https://hackmd.io/jmNmdxBoRsWtgdVuvuoccQ) </center> 
+
+![](fig/hackmd.png)
+
+
+## Optimiser sa mise en page avec des classes préformatées
+
+<center><br><br>Ceci</center> 
+
+``` markdown
+::: columns
+
+::: {.column width="40%"}
+
+::: {.callout-tip}
+## 5 types de callouts disponibles
+`note`, `warning`, `important`, `tip`, and `caution`.
+:::
+
+::: {.callout-note appearance="simple"}
+## Pay Attention
+
+Using callouts is an effective way to highlight content that your reader give special consideration or attention.
+:::
+
+::: 
+
+::: {.column width="60%"}
+![](fig/callout.png)
+:::
+
+:::
+```
+
+## Optimiser sa mise en page avec des classes préformatées
+
+<center><br><br>Rend cela</center> 
+
+::: columns
+::: {.column width="40%"}
+
+::: {.callout-note}
+Note that there are five types of callouts, including:
+`note`, `warning`, `important`, `tip`, and `caution`.
+:::
+::: {.callout-note appearance="simple"}
+## Pay Attention
+
+Using callouts is an effective way to highlight content that your reader give special consideration or attention.
+:::
+::: 
+
+::: {.column width="60%"}
+::: {.callout-tip}
+## Tip with Title
+
+This is an example of a callout with a title.
+:::
+
+::: {.callout-caution collapse="true"}
+## Expand To Learn About Collapse
+
+This is an example of a 'folded' caution callout that can be expanded by the user. You can use `collapse="true"` to collapse it by default or `collapse="false"` to make a collapsible callout that is expanded by default.
+:::
+:::
+:::
+
+## Paramétrer ses blocs de code grâce aux *chunks*
+
+Le code est à placer dans des ***chunks*** (tronçons), délimités par des triples ***backticks*** (Code > Insert Chunk dans RStudio).
+
+Un même document Quarto peut combiner plusieurs langages de programmation : 
+
+
+*Voici un graphique créé avec la librairie python matplotlib.* 
+
+````
+```{{python}}
+import matplotlib.pyplot as plt
+plt.plot([1,2,3,4])
+plt.show()
+```
+````
+
+*Et un graphique avec le package ggplot de R...*
+
+````
+```{{r}}
+library(ggplot2)
+ggplot(airquality, aes(Temp, Ozone)) + 
+  geom_point() + 
+  geom_smooth(method = "loess", se = FALSE)
+```
+````
+
+## Paramétrer ses blocs de code grâce aux *chunks*
+
+En initiant le *chunk* par un ***hash pipe*** **`#|`** on peut paramétrer son exécution / affichage. Les arguments les plus usuels sont :
+
+- `label: toto` : nommer le chunk
+- `eval: true/false` : le bloc de code est joué ou non.
+- `echo: true/false` : le bloc de code s'affiche ou non dans le document de sortie. 
+- `cache: true/false` : les résultats sont mis en cache et ne sont pas rejoués tant que le bloc de code reste inchangé. 
+- `warning: true/false` : affiche les messages d'alerte ou non. 
+- `fig-height: 4` / `fig-width: 6` : hauteur / largeur du plot de sortie, en pouces. 
+- `dpi: 150` : densité de pixels par pouce. 
+
+## Paramétrer ses blocs de code grâce aux *chunks*
+
+::: columns
+::: {.column width="50%"}
+
+<br><center>Ceci dans le .qmd</center><br>
+
+````
+```{{r}}
+plot(1:10)
+```
+
+````
+
+::: 
+
+::: {.column width="50%"}
+
+<br><center>Rendra cela dans le fichier de sortie</center><br>
+
+```{r}
+plot(1:10)
+```
+
+::: 
+::: 
+
+## Paramétrer ses blocs de code grâce aux *chunks*
+
+::: columns
+::: {.column width="50%"}
+
+<br><center>Ceci dans le .qmd</center><br>
+
+````
+
+```{{r}}
+#| eval: false
+#| echo: false
+plot(1:10)
+```
+
+````
+
+::: 
+
+::: {.column width="50%"}
+
+<br><center>Ne rendra rien dans le fichier de sortie...  
+Et c'est bien normal :)</center> 
+
+::: 
+::: 
+
+## Paramétrer ses blocs de code grâce aux *chunks*
+
+::: columns
+::: {.column width="50%"}
+
+<br><center>Ceci dans le .qmd</center><br>
+
+````
+
+```{{r}}
+#| echo: false
+plot(1:10)
+```
+
+````
+
+::: 
+
+::: {.column width="50%"}
+
+<br><center>Rendra cela dans le fichier de sortie</center><br>
+
+```{r}
+#| echo: false
+plot(1:10)
+```
+
+::: 
+::: 
+
+## Paramétrer ses blocs de code grâce aux *chunks*
+
+::: columns
+::: {.column width="50%"}
+
+<br><center>Ceci dans le .qmd</center><br>
+
+````
+
+```{{r}}
+#| fig-height: 4
+#| fig-width: 3
+#| fig-cap: Fig.1 - Un graphique très basique ! 
+#| code-fold: true
+plot(1:10)
+```
+
+````
+
+::: 
+
+::: {.column width="50%"}
+
+<br><center>Rendra cela dans le fichier de sortie</center><br>
+
+```{r}
+#| fig-height: 4
+#| fig-width: 3
+#| fig-cap: Fig.1 - Un graphique très basique ! 
+#| code-fold: true
+plot(1:10)
+```
+
+::: 
+::: 
+
+## Paramétrer ses blocs de code grâce aux *chunks*
+
+::: columns
+
+::: {.column width="50%"}
+
+À noter...
+
+- Générez (`render`) le document fréquemment pour veiller à la cohérence / bonne exécution de vos blocs de code.
+- Pour vous comme pour les autres, évitez les blocs de code trop volumineux ou longs. 
+- Les paramètres des chunks peuvent aussi être spécifiés dans le YAML (setup chunk).
+- L'usage de Knitr rend disponible encore [davantage d'options](https://quarto.org/docs/reference/cells/cells-knitr.html).
+- Ces paramètres peuvent légèrement changer si l'on compile le document avec [Jupyter](https://quarto.org/docs/reference/cells/cells-jupyter.html) ou [Observable JS](https://quarto.org/docs/reference/cells/cells-ojs.html).
+
+:::
+
+:::
+
+## Paramétrer ses blocs de code grâce aux chunks
+
+::: columns
+
+::: {.column width="50%"}
+
+À noter...
+
+- Générer (`render`) le document fréquemment pour veiller à la bonne exécution de son code
+- Éviter les blocs de code trop volumineux ou longs. 
+- Les paramètres des chunks peuvent aussi être spécifiés dans le YAML (setup chunk).
+- Possibilité d'intégrer aisément des librairies JavaScript de visualisation interactive grâce aux [Jupyter Widgets](https://quarto.org/docs/interactive/widgets/jupyter.html) ou [htmlwidgets pour R](https://quarto.org/docs/interactive/widgets/htmlwidgets.html).
+:::
+
+::: {.column width="50%"}
+
+````
+```{{r}}
+#| out-width: "400px"
+#| out-height: "400px"
+library(leaflet)
+
+leaflet(loc) |> 
+  addTiles() |> 
+  addMarkers(lng = 10.579, lat = 35.913, 
+             popup="GEO UNIV’R Tunisie 2024") 
+```
+
+````
+
+```{r}
+#| echo: false
+#| out-width: "400px"
+#| out-height: "400px"
+
+library(leaflet)
+
+leaflet() |> 
+  addTiles() |> 
+  addMarkers(lng = 10.579, lat = 35.913, 
+             popup="GEO UNIV’R Tunisie 2024") 
+```
+
+:::
+
+:::
+
+# A vous de jouer !
+
+## Objectif : Créer et paramétrer son notebook
+
+::: columns
+::: {.column width="50%"}
+::: {.medium}
+
+1. Téléchargez les données de l'exercice : https://bit.ly/3WxlAzM
+2. Décompressez l'archive qui contient :
+<small>
+    - `exo_proj` : le fichier projet (chemins relatifs)
+    - `exo_script.R` : un script R qui produit d'une carte interactive avec `leaflet`
+    - `exo_fig` : un dossier qui contient une photo de l'hôtel
+    - `exo_bib.bib` : un fichier BibTeX qui contient une référence bibliographique  </small>
+3. Ouvrez le fichier `exo_proj` puis créez un document Quarto sous RStudio. Enregistrez le dans le dossier que vous venez de décompresser.
+4. Adaptez le fichier :
+<small>
+    - **YAML** : Ajouter un titre, un sous-titre, un nom d'auteur, une table des matières, une bibliographie. 
+    - **markdown** : Ajouter des titres de niveau 2, mettre du texte en gras et en italique, ajouter une figure, un renvoi vers la bibliographie. 
+    - **classes préformatées** : une colonne pour la photo, une pour la carte.
+    - **code R / chunks** : copier/coller le code R disponible dans le fichier script.R dans un `chunk`. Le paramétrer pour faire en sorte qu'on ne voit pas le code, les messages d'erreur. Faire en sorte que la photo et la carte interactive aient à peu près la même hauteur. 
+    
+</small>
+
+::: 
+::: 
+
+::: {.column width="50%"}
+
+![](fig/lun1_exo.png)
+
+:::
+::: 
+
+## Solution
+
+::: columns
+::: {.column width="50%"}
+::: {.medium}
+
+1. Téléchargez les données de l'exercice : https://bit.ly/3WxlAzM
+2. Décompressez l'archive qui contient :
+<small>
+    - `exo_proj` : le fichier projet (chemins relatifs)
+    - `exo_script.R` : un script R qui produit d'une carte interactive avec `leaflet`
+    - `exo_fig` : un dossier qui contient une photo de l'hôtel
+    - `exo_bib.bib` : un fichier BibTeX qui contient une référence bibliographique</small>
+3. Ouvrez le fichier `exo_proj` puis créez un document Quarto sous RStudio. Enregistrez le dans le dossier que vous venez de décompresser.
+4. Adaptez le fichier :
+<small>
+    - **YAML** : Ajouter un titre, un sous-titre, un nom d'auteur, une table des matières, une bibliographie. 
+    - **markdown** : Ajouter des titres de niveau 2, mettre du texte en gras et en italique, ajouter une figure, un renvoi vers la bibliographie. 
+    - **classes préformatées** : une colonne pour la photo, une pour la carte.
+    - **code R / chunks** : copier/coller le code R disponible dans le fichier script.R dans un `chunk`. Le paramétrer pour faire en sorte qu'on ne voit pas le code, les messages d'erreur. Faire en sorte que la photo et la carte interactive aient à peu près la même hauteur. 
+    
+</small>
+::: 
+::: 
+
+::: {.column width="50%"}
+
+![](fig/lun1_exo_soluce.png)
+
+:::
+::: 

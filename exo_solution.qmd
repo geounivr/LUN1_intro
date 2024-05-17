@@ -1,0 +1,36 @@
+---
+title: "Geo Univ'R 2024"
+subtitle: "Exercices"
+author: "Ronan Ysebaert"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    bibliography: [exo_bib.bib]
+---
+
+Ce notebook rassemble les exercices pratiques proposés lors de la semaine de formation **Geo Univ'R 2024**, qui s'inscrit dans la continuité de l'école d'été *Méthodes et Outils des sciences des Territoires* [@cist2023]. 
+
+## Le lieu du séminaire / Exo 1
+
+L'*Hôtel Soviva* Resort de Sousse.
+
+:::::: columns
+::: {.column width="50%"}
+![](exo_fig/hotel.jpg)
+:::
+::: {.column width="50%"}
+```{r}
+#| echo: false
+#| warning: false
+#| out-height: "300px"
+
+library(leaflet)
+
+leaflet() |> 
+  addTiles() |> 
+  addMarkers(lng = 10.579, lat = 35.913,
+             popup="GEO UNIV’R Tunisie 2024") 
+```
+:::
+:::::: 
