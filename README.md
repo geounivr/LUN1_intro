@@ -1,6 +1,6 @@
 # GEO UNIV'R Tunisie 2024
 
-<img src = "fig/logo.png" width = "250px"/>
+<img src = "img/logo.png" width = "250px"/>
 
 ## <ins>Liste des cours et supports</ins>
 
@@ -18,6 +18,12 @@ Comment importer, explorer, manipuler, visualiser (simplement) et exporter des d
 
 - <a href = "https://geounivr.github.io/LUN3_Manipulation_donnees/" target = "_BLANK">LUN_3_manipulation de données</a>
 
+
+### [MAR1] Manipuler les vecteurs avec R et le package sf 
+
+Comment réaliser des traitements SIG (géotraitements, selections attributaires et spatiales, jointures etc...) avec R
+
+- <a href = "https://geounivr.github.io/MAR1_vecteur/" target = "_BLANK">MAR_1_vecteurs</a>
 
 ### [MAR2] Cartographie avec R
 
